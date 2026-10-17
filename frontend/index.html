@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acme Retail • Semantic Product Recommendation Engine</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/css/style.css">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 flex flex-col">
+
+  <!-- Top Announcement Bar -->
+  <aside aria-label="Announcement" class="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
+    <div class="max-w-7xl mx-auto flex items-center justify-between flex-wrap gap-2">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+          AR-ML-2026-006
+        </span>
+        <span class="text-slate-300 font-medium">Acme Retail NLP Recommendation System • Dense Word2Vec & FastText Fallback Engine</span>
+      </div>
+      <div class="flex items-center gap-4 text-[11px] text-slate-400">
+        <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 63,333 Vectorized Catalog Items</span>
+        <span class="hidden sm:inline">Sub-10ms Cosine Dot-Product Similarity</span>
+        <a href="/docs" target="_blank" class="hover:text-white transition-colors underline">FastAPI Swagger Docs</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Navigation Header -->
+  <header class="sticky top-0 z-30 glass-nav shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      
+      <!-- Logo & Brand -->
+      <div class="flex items-center gap-3 shrink-0">
+        <a href="/" class="flex items-center gap-2.5 group">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <span class="text-lg font-extrabold tracking-tight text-white font-heading">Acme Retail</span>
+              <span class="px-1.5 py-0.2 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">NLP AI</span>
+            </div>
+            <p class="text-[10px] text-slate-400 tracking-wider uppercase font-medium">Semantic Discovery Engine</p>
+          </div>
+        </a>
+      </div>
+
+      <!-- Center Omnibox Search Bar -->
+      <div class="flex-1 max-w-2xl hidden md:block">
+        <div class="relative flex items-center bg-white rounded-xl shadow-inner border border-slate-700/50 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-500/20 transition-all overflow-hidden">
+          
+          <!-- Integrated Category Dropdown -->
+          <div class="relative shrink-0 border-r border-slate-200">
+            <select id="categorySelect" aria-label="Select product category" class="h-10 pl-3 pr-7 text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 cursor-pointer outline-none transition-colors border-0">
+              <option value="all">All Categories</option>
+            </select>
+          </div>
+
+          <!-- Text Input -->
+          <div class="relative flex-1 flex items-center">
+            <input 
+              type="text" 
+              id="searchInput"
+              placeholder="Search products semantically (e.g., 'wireless mouse', 'cotton shirt', 'bluetoth wireles')..." 
+              class="w-full h-10 px-3 text-xs text-slate-900 placeholder-slate-400 bg-transparent outline-none"
+              autocomplete="off"
+            />
+            
+            <!-- Clear Button -->
+            <button id="clearBtn" style="display: none;" class="p-1 text-slate-400 hover:text-slate-600 mr-2 rounded-full">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+
+            <!-- Keyboard shortcut hint -->
+            <div class="hidden lg:flex items-center mr-2 px-1.5 py-0.5 rounded bg-slate-100 text-[10px] font-mono text-slate-600 border border-slate-200">
+              /
+            </div>
+          </div>
+
+          <!-- Search Button -->
+          <button id="searchBtn" class="h-10 px-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <span class="hidden sm:inline">Discover</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Action Navigation Buttons -->
+      <div class="flex items-center gap-2.5 shrink-0">
+        <!-- Model Comparator Button -->
+        <button 
+          onclick="openComparisonModal()" 
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors shadow-sm"
+          title="Compare Word2Vec, FastText, and TF-IDF models side-by-side"
+        >
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span class="hidden sm:inline">Model Comparator</span>
+        </button>
+
+        <!-- Assessment / Architecture Inspector -->
+        <button 
+          onclick="openArchitectureModal()" 
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors shadow-sm"
+          title="View Technical Assessment Brief, Pipeline Architecture, and System Specs"
+        >
+          <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span class="hidden sm:inline">Architecture</span>
+        </button>
+
+        <!-- Cart Button -->
+        <button 
+          onclick="toggleCart()" 
+          class="relative p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors shadow-sm"
+          title="Shopping Cart"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+          <span id="cartCount" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shadow" style="display: none;">0</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Mobile Search Bar (Only shown on small screens) -->
+    <div class="px-4 pb-3 md:hidden">
+      <div class="flex items-center bg-white rounded-xl shadow-inner border border-slate-700/50 overflow-hidden">
+        <input 
+          type="text" 
+          id="mobileSearchInput" 
+          placeholder="Search catalog semantically..." 
+          onkeydown="if(event.key==='Enter'){setQuery(this.value);}"
+          class="w-full h-10 px-3 text-xs text-slate-900 bg-transparent outline-none"
+        />
+        <button onclick="setQuery(document.getElementById('mobileSearchInput').value)" class="h-10 px-4 bg-indigo-600 text-white text-xs font-bold">
+          Search
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Quick Query Chips Bar (Evaluation Scenarios) -->
+  <section aria-label="Query suggestions" class="bg-slate-100/80 border-b border-slate-200/80 py-2.5 px-4 overflow-x-auto">
+    <div class="max-w-7xl mx-auto flex items-center gap-2 text-xs">
+      <span class="text-slate-500 font-semibold shrink-0 flex items-center gap-1">
+        <svg class="w-3.5 h-3.5 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"></path></svg>
+        Scenario Demos:
+      </span>
+      
+      <!-- Primary Route Chip (In-Vocab) -->
+      <button onclick="setQuery('wireless mouse')" class="shrink-0 px-2.5 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-sm transition-all hover:border-indigo-300">
+        🖱️ wireless mouse <span class="text-[10px] text-emerald-600 font-bold ml-1">(Primary W2V)</span>
+      </button>
+
+      <!-- Typo / Fallback Route Chip (FastText) -->
+      <button onclick="setQuery('bluetoth wireles earphone')" class="shrink-0 px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 shadow-sm transition-all font-semibold">
+        ⚡ bluetoth wireles earphone <span class="text-[10px] text-amber-700 ml-1">(FastText Fallback)</span>
+      </button>
+
+      <!-- Fashion Semantic Query -->
+      <button onclick="setQuery('cotton summer dress')" class="shrink-0 px-2.5 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-sm transition-all hover:border-indigo-300">
+        👗 cotton summer dress
+      </button>
+
+      <!-- Electronics Compound Query -->
+      <button onclick="setQuery('noise cancelling headphone')" class="shrink-0 px-2.5 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-sm transition-all hover:border-indigo-300">
+        🎧 noise cancelling headphone
+      </button>
+
+      <!-- Home & Kitchen Query -->
+      <button onclick="setQuery('non stick frying pan')" class="shrink-0 px-2.5 py-1 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 shadow-sm transition-all hover:border-indigo-300">
+        🍳 non stick frying pan
+      </button>
+
+      <!-- Typo 2 Demo -->
+      <button onclick="setQuery('runing shooes')" class="shrink-0 px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 shadow-sm transition-all font-semibold">
+        ⚡ runing shooes <span class="text-[10px] text-amber-700 ml-1">(Typo OOV)</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Main Content Layout -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full grid grid-cols-1 lg:grid-cols-4 gap-6">
+    
+    <!-- LEFT SIDEBAR: FILTERS & CONTROLS -->
+    <aside class="space-y-6">
+      
+      <!-- Engine Mode Selector -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center justify-between">
+          <span>Routing Engine Mode</span>
+          <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+        </h3>
+        <div class="space-y-1.5 text-xs">
+          <button onclick="setEngineMode('hybrid')" data-mode="hybrid" class="engine-mode-btn w-full text-left px-3 py-2 rounded-xl font-semibold bg-indigo-600 text-white shadow-sm transition-all">
+            <div class="flex items-center justify-between">
+              <span>🧠 Hybrid Auto-Route</span>
+              <span class="text-[10px] uppercase font-bold tracking-widest opacity-80">Default</span>
+            </div>
+            <p class="text-[11px] font-normal opacity-90 mt-0.5">Word2Vec primary + FastText OOV fallback</p>
+          </button>
+
+          <button onclick="setEngineMode('word2vec')" data-mode="word2vec" class="engine-mode-btn w-full text-left px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-800">Word2Vec Only</span>
+              <span class="text-[10px] font-mono text-slate-600">Dense 100D</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-0.5">Known vocabulary semantic clustering</p>
+          </button>
+
+          <button onclick="setEngineMode('fasttext')" data-mode="fasttext" class="engine-mode-btn w-full text-left px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-800">FastText Only</span>
+              <span class="text-[10px] font-mono text-amber-600">Subwords</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-0.5">Character n-grams for typo resilience</p>
+          </button>
+
+          <button onclick="setEngineMode('tfidf')" data-mode="tfidf" class="engine-mode-btn w-full text-left px-3 py-2 rounded-xl text-slate-600 hover:bg-slate-100 transition-all">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-800">TF-IDF Baseline</span>
+              <span class="text-[10px] font-mono text-slate-600">Sparse 5K</span>
+            </div>
+            <p class="text-[11px] text-slate-600 mt-0.5">Lexical unigram/bigram keyword matcher</p>
+          </button>
+        </div>
+      </div>
+
+      <!-- Department / Category Filters -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+        <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3 flex items-center justify-between">
+          <span>Departments</span>
+          <span class="text-xs font-normal text-slate-600">Select to filter</span>
+        </h3>
+        <div id="categoriesList" class="space-y-1 max-h-60 overflow-y-auto pr-1">
+          <!-- Populated dynamically via JS -->
+          <div class="h-6 skeleton rounded"></div>
+          <div class="h-6 skeleton rounded"></div>
+          <div class="h-6 skeleton rounded"></div>
+        </div>
+      </div>
+
+      <!-- Rating & Sorting Filters -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm space-y-4">
+        
+        <!-- Minimum Rating -->
+        <div>
+          <h3 class="text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Customer Rating</h3>
+          <div class="grid grid-cols-3 gap-1.5 text-xs">
+            <button onclick="setRatingFilter(null)" data-rating="all" class="rating-filter-btn py-1.5 px-2 rounded-lg border border-amber-400 bg-amber-50 text-amber-800 font-semibold text-center transition-all">
+              Any
+            </button>
+            <button onclick="setRatingFilter(4.0)" data-rating="4.0" class="rating-filter-btn py-1.5 px-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-center transition-all">
+              4.0★ & Up
+            </button>
+            <button onclick="setRatingFilter(3.0)" data-rating="3.0" class="rating-filter-btn py-1.5 px-2 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 text-center transition-all">
+              3.0★ & Up
+            </button>
+          </div>
+        </div>
+
+        <!-- Sort Criteria -->
+        <div>
+          <label for="sortSelect" class="block text-xs font-bold text-slate-900 uppercase tracking-wider mb-2">Sort Results</label>
+          <select id="sortSelect" class="w-full h-9 px-3 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-700 outline-none">
+            <option value="similarity">Best Semantic Match (Relevance)</option>
+            <option value="rating">Customer Rating (High to Low)</option>
+            <option value="price_asc">Price: Low to High</option>
+            <option value="price_desc">Price: High to Low</option>
+          </select>
+        </div>
+
+        <!-- Top-N Count -->
+        <div>
+          <div class="flex items-center justify-between text-xs mb-1.5">
+            <span class="font-bold text-slate-900 uppercase tracking-wider">Top-N Results</span>
+            <span id="topNValue" class="font-mono font-bold text-indigo-600">12</span>
+          </div>
+          <input 
+            type="range" 
+            id="topNSlider" 
+            min="4" 
+            max="36" 
+            step="4" 
+            value="12"
+            aria-label="Number of recommendations to return"
+            class="w-full accent-indigo-600 cursor-pointer"
+          />
+        </div>
+
+      </div>
+
+      <!-- Technical Assessment Specs Card -->
+      <div class="bg-gradient-to-br from-slate-900 to-indigo-950 rounded-2xl p-4 text-white shadow-md">
+        <div class="flex items-center gap-2 mb-2">
+          <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+          <span class="text-xs font-bold uppercase tracking-wider text-emerald-400">Acme Assessment Spec</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Primary Word2Vec embedding handles standard catalog semantics; FastText character n-grams guarantee zero failure on OOV words and typos.
+        </p>
+        <button onclick="openArchitectureModal()" class="mt-3 text-xs font-semibold text-indigo-300 hover:text-white flex items-center gap-1">
+          <span>Read Pipeline Architecture Brief</span>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+        </button>
+      </div>
+
+    </aside>
+
+    <!-- RIGHT MAIN AREA: RESULTS & RECOMMENDATIONS -->
+    <section aria-label="Recommendation results" class="lg:col-span-3 space-y-4">
+      
+      <!-- Dynamic Routing Banner (Word2Vec Primary vs FastText Fallback) -->
+      <div id="routingBanner">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Results Meta Header -->
+      <div class="flex items-center justify-between flex-wrap gap-2 pb-2 border-b border-slate-200">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 font-heading">
+            Recommended Products for <span id="activeQueryDisplay" class="text-indigo-600">"wireless mouse"</span>
+          </h2>
+          <p class="text-xs text-slate-600 mt-0.5">
+            Arranged by cosine similarity relevance score from highest to lowest.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-semibold text-slate-600">
+            <span id="resultsCount" class="font-bold text-slate-800">12</span> items found
+          </span>
+          <span class="text-xs font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200">
+            ⚡ <span id="latencyBadge">4.2 ms</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Product Cards Grid -->
+      <div id="resultsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <!-- Product Cards injected by app.js -->
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Side-by-Side Model Comparison Modal (Cell 20 Evaluation) -->
+  <div id="compareModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 rounded-xl bg-amber-500 text-white shadow-sm">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-900">Multi-Model Side-by-Side Evaluation</h3>
+            <p class="text-xs text-slate-500">Benchmark TF-IDF (Baseline) vs Word2Vec (Primary) vs FastText (Fallback)</p>
+          </div>
+        </div>
+        <button onclick="closeAllModals()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="compareModalContent" class="p-6 overflow-y-auto flex-1">
+        <!-- Rendered via JS -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Product Detail & NLP Inspector Modal -->
+  <div id="productModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Product Profile & NLP Vectors</h3>
+        <button onclick="closeAllModals()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200 transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div id="productModalContent" class="p-6 overflow-y-auto flex-1">
+        <!-- Rendered via JS -->
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Architecture & Technical Assessment Modal -->
+  <div id="archModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm hidden animate-fadeIn">
+    <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+      
+      <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-900 text-white">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 rounded-xl bg-indigo-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold">Acme Retail Recommendation Engine Architecture</h3>
+            <p class="text-xs text-slate-400">Design Brief Ref: AR-ML-2026-006 • Technical Assessment Report</p>
+          </div>
+        </div>
+        <button onclick="closeAllModals()" class="p-1.5 rounded-lg text-slate-400 hover:text-white transition-colors">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-700 leading-relaxed">
+        
+        <!-- Live Statistics Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-[10px] text-slate-500 uppercase font-semibold">Catalog Size</span>
+            <div id="statsTotalProducts" class="text-base font-extrabold text-slate-900 mt-0.5">63,333</div>
+          </div>
+          <div class="p-3 rounded-xl bg-indigo-50 border border-indigo-200">
+            <span class="text-[10px] text-indigo-700 uppercase font-semibold">Word2Vec Vocab</span>
+            <div id="statsW2VVocab" class="text-base font-extrabold text-indigo-900 mt-0.5">Loading...</div>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-50 border border-amber-200">
+            <span class="text-[10px] text-amber-700 uppercase font-semibold">FastText Vocab</span>
+            <div id="statsFTVocab" class="text-base font-extrabold text-amber-900 mt-0.5">Loading...</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-[10px] text-slate-500 uppercase font-semibold">TF-IDF Features</span>
+            <div id="statsTFIDFVocab" class="text-base font-extrabold text-slate-900 mt-0.5">5,000</div>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+            <span class="text-[10px] text-emerald-700 uppercase font-semibold">Query Latency</span>
+            <div class="text-base font-extrabold text-emerald-900 mt-0.5">&lt; 5 ms</div>
+          </div>
+        </div>
+
+        <!-- Section 1: Problem & Objective -->
+        <div class="space-y-2">
+          <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-indigo-700">1. Problem Statement & Objective</h4>
+          <p>
+            Acme Retail requires a production-grade product similarity and recommendation system that moves beyond simple exact keyword matching. 
+            The system accepts either plain product search text or an existing catalog product ID, represents items in a continuous vector space capturing semantic meaning, computes cosine similarity, and returns the top-N ranked items.
+          </p>
+        </div>
+
+        <!-- Section 2: Pipeline Workflow -->
+        <div class="space-y-2">
+          <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-indigo-700">2. End-to-End Processing Pipeline</h4>
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-[11px]">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="font-bold text-slate-900 block mb-1">Stage 1: Preprocessing</span>
+              Combines title, main category, and subcategory. Applies regex cleaning, tokenization, stopword removal, and WordNet lemmatization.
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="font-bold text-slate-900 block mb-1">Stage 2: OOV Detection</span>
+              Analyzes incoming tokens against the Word2Vec vocabulary. If all tokens exist, selects Word2Vec; if any unseen/typo token is found, triggers FastText.
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="font-bold text-slate-900 block mb-1">Stage 3: Embedding</span>
+              Synthesizes 100-dimensional dense embeddings by averaging constituent word vectors or subword character n-grams (3-6 chars).
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+              <span class="font-bold text-slate-900 block mb-1">Stage 4: Cosine Ranking</span>
+              Executes L2-normalized dot product across pre-computed catalog matrices in &lt;5ms. Extracts top-N items arranged by similarity score.
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Word2Vec vs FastText Rationale -->
+        <div class="space-y-2">
+          <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-indigo-700">3. Rationale: Word2Vec Primary + FastText Fallback</h4>
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+            <p>
+              <strong>Why Word2Vec as Primary?</strong> Word2Vec (Skip-gram, window=5, vector_size=100) creates high-precision semantic representations for catalog titles and categories, learning rich e-commerce relationships (e.g., brand associations, product types).
+            </p>
+            <p>
+              <strong>Why FastText as Fallback?</strong> In a real-world e-commerce marketplace, customers frequently misspell search terms (e.g. <code>bluetoth</code> instead of <code>bluetooth</code>, <code>wireles</code> instead of <code>wireless</code>) or search for brand names and slang not present in training data. Word2Vec produces an all-zero vector for out-of-vocabulary words. FastText resolves this using character n-grams (3 to 6 characters), reconstructing vectors from subword morphology and ensuring recommendations never fail.
+            </p>
+          </div>
+        </div>
+
+        <!-- Section 4: Fast Vector Similarity Math -->
+        <div class="space-y-2">
+          <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider text-indigo-700">4. High-Performance Retrieval Math</h4>
+          <p>
+            Rather than re-computing vector norms during every user query, the catalog embeddings (63,333 × 100) are L2-normalized at server startup:
+          </p>
+          <pre class="code-preview">normalized_matrix = matrix / np.linalg.norm(matrix, axis=1, keepdims=True)
+query_norm = query / np.linalg.norm(query)
+similarity_scores = np.dot(normalized_matrix, query_norm.T).flatten()  # Runs in ~4.6ms on 63K products!</pre>
+        </div>
+
+      </div>
+
+      <div class="px-6 py-3 border-t border-slate-200 bg-slate-50 flex items-center justify-between">
+        <span class="text-xs text-slate-500">Acme Retail Confidential • NLP / Search & Discovery Group</span>
+        <button onclick="closeAllModals()" class="px-4 py-1.5 rounded-lg bg-slate-900 text-white font-bold text-xs hover:bg-indigo-600 transition-colors">
+          Close Inspector
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Slide-out Shopping Cart Drawer -->
+  <div id="cartOverlay" onclick="closeCart()" class="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-xs hidden transition-opacity"></div>
+  <div id="cartDrawer" class="fixed top-0 right-0 z-50 h-full w-full max-w-md bg-white shadow-2xl border-l border-slate-200 flex flex-col transform translate-x-full transition-transform duration-300 ease-in-out">
+    
+    <!-- Cart Header -->
+    <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+      <div class="flex items-center gap-2">
+        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+        <h3 class="text-sm font-bold text-slate-900">Your Shopping Cart</h3>
+      </div>
+      <button onclick="closeCart()" class="p-1 rounded-lg text-slate-400 hover:text-slate-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <!-- Cart Items -->
+    <div id="cartItemsList" class="p-4 flex-1 overflow-y-auto space-y-3">
+      <!-- Injected by app.js -->
+    </div>
+
+    <!-- Cart Footer -->
+    <div class="p-4 border-t border-slate-200 bg-slate-50 space-y-3">
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-slate-600">Subtotal</span>
+        <span id="cartSubtotal" class="font-extrabold text-slate-900 text-base">₹0</span>
+      </div>
+      <p class="text-[11px] text-slate-500">Free Express Delivery applied on Acme Retail orders over ₹999.</p>
+      <button onclick="checkoutCart()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md transition-colors">
+        Proceed to Checkout
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-slate-200 bg-white py-6 px-4 text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div>
+        <p class="font-semibold text-slate-700">Acme Retail Product Discovery & Recommendation System</p>
+        <p class="text-[11px]">Powered by Word2Vec Primary + FastText Fallback + Scikit-Learn TF-IDF Baseline</p>
+      </div>
+      <div class="flex items-center gap-4 text-[11px]">
+        <button onclick="openArchitectureModal()" class="hover:text-indigo-600 transition-colors">Architecture Overview</button>
+        <button onclick="openComparisonModal()" class="hover:text-indigo-600 transition-colors">Model Evaluation</button>
+        <a href="/docs" target="_blank" class="hover:text-indigo-600 transition-colors">API Documentation</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Script -->
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

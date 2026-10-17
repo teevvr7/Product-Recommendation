@@ -1,0 +1,31 @@
+# Python Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.ipynb_checkpoints/
+
+# Exclude Datasets (CSV & precomputed PKL files)
+data/
+*.csv
+*.pkl
+
+# Exclude Trained Models & Large Vector Arrays
+models/
+*.model
+*.model.*
+*.npy
+
+# Exclude Technical Assessment Document
+docs/
+*.pdf
+
+# Logs, temporary files & OS artifacts
+*.log
+.DS_Store
+Thumbs.db
