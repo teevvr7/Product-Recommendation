@@ -1,19 +1,18 @@
-# Acme Retail — Semantic Product Recommendation & Discovery Engine
+# Semantic Product Recommendation & Discovery Engine
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115%2B-009688.svg)](https://fastapi.tiangolo.com/)
 [![Gensim](https://img.shields.io/badge/Gensim-Word2Vec%20%7C%20FastText-e05d44.svg)](https://radimrehurek.com/gensim/)
 [![Scikit-Learn](https://img.shields.io/badge/scikit--learn-TF--IDF-orange.svg)](https://scikit-learn.org/)
-[![License](https://img.shields.io/badge/License-Confidential-red.svg)]()
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **Ref: AR-ML-2026-006 — Acme Retail Machine Learning & NLP Technical Assessment**  
-> High-performance semantic discovery and similarity recommendation web application powered by **Word2Vec (Primary)**, **FastText (Fallback)**, and **TF-IDF (Baseline)**.
+> High-performance e-commerce semantic discovery and similarity recommendation web application powered by **Word2Vec (Primary)**, **FastText (Fallback)**, and **TF-IDF (Baseline)**.
 
 ---
 
 ## 1. Executive Summary & Problem Context
 
-In large-scale e-commerce marketplaces (such as Acme Retail's catalog of 63,000+ products), exact keyword search often fails to capture user intent due to:
+In large-scale e-commerce marketplaces with tens of thousands of catalog products, exact keyword search often fails to capture user intent due to:
 1. **Synonymy & Vocabulary Mismatch**: Searching for *"athletic footwear"* should recommend *"running shoes"*, even if the exact words differ.
 2. **Out-of-Vocabulary (OOV) Terms & Typos**: Shoppers frequently misspell words (e.g., `bluetoth wireles earphone`), causing traditional keyword systems and standard Word2Vec models to return zero results.
 3. **Product-to-Product Discovery**: When a customer views a product, the platform must recommend semantically related products from across departments.
@@ -38,7 +37,7 @@ flowchart TD
     E --> F
     F --> G["Fast Dot-Product Cosine Similarity<br/>Matrix Search across 63,333 Catalog Embeddings (&lt;5ms)"]
     G --> H["Filtering & Ranking Engine<br/>(Category Filter, Min Rating, Sort Criteria)"]
-    H --> I["Top-N Ranked Recommendations<br/>(with Match %, Badges, Image URLs & Amazon Links)"]
+    H --> I["Top-N Ranked Recommendations<br/>(with Match %, Badges, Image URLs & Outbound Links)"]
 ```
 
 ### 2.1 Text Preprocessing Pipeline
@@ -77,27 +76,24 @@ The project adheres to professional modular separation of concerns:
 
 ```
 Product-Recommendation/
-├── data/                          # Modular dataset store
+├── data/                          # Dataset directory (local / gitignored)
 │   ├── raw/
-│   │   ├── AcmeRetail_Products_70000.csv   # Working product catalog dataset
-│   │   └── Amazon-Products.csv             # Reference image & link dataset
+│   │   ├── AcmeRetail_Products_70000.csv   # Product catalog dataset
+│   │   └── Amazon-Products.csv             # Product images and links dataset
 │   └── processed/
-│       ├── catalog_enriched.pkl            # 63,333 items with vectors, images, & links
+│       ├── catalog_enriched.pkl            # Processed items with vectors, images, & links
 │       └── product_catalog_vectorized.pkl  # Vectorized catalog dataframe
 │
-├── models/                        # Trained ML models & vector artifacts
-│   ├── word2vec_model.model                # Gensim Word2Vec primary model (100D Skip-gram)
-│   ├── fasttext_model.model                # Gensim FastText fallback model (3-6 n-grams)
+├── models/                        # Trained ML models & vector artifacts (local / gitignored)
+│   ├── word2vec_model.model                # Word2Vec primary model (100D Skip-gram)
+│   ├── fasttext_model.model                # FastText fallback model (3-6 n-grams)
 │   ├── fasttext_model.model.wv.vectors_ngrams.npy # Subword character n-gram weights
-│   ├── tfidf_vectorizer.pkl                # Scikit-Learn TF-IDF vectorizer (baseline)
+│   ├── tfidf_vectorizer.pkl                # TF-IDF vectorizer (baseline)
 │   └── tfidf_matrix.pkl                    # Precomputed TF-IDF sparse matrix
 │
-├── notebooks/                     # Jupyter notebooks
+├── notebooks/                     # Jupyter development notebooks
 │   ├── Data-Understanding.ipynb            # Exploratory data analysis notebook
 │   └── Product_Recommendation.ipynb        # NLP pipeline & training notebook
-│
-├── docs/                          # Technical documentation & design briefs
-│   └── Acme Retail Technical Assessment-1.pdf # Technical assessment brief (AR-ML-2026-006)
 │
 ├── backend/                       # Modular FastAPI backend architecture
 │   ├── __init__.py
@@ -121,7 +117,7 @@ Product-Recommendation/
 │       ├── products.py            # GET /api/products, GET /api/products/{id}, categories
 │       └── system.py              # GET /api/system/stats, GET /api/system/health
 │
-├── frontend/                      # Commercial e-commerce interface
+├── frontend/                      # Modern e-commerce web application
 │   ├── static/
 │   │   ├── css/
 │   │   │   └── style.css          # Design system, glassmorphism, card hover lift
@@ -131,6 +127,7 @@ Product-Recommendation/
 │
 ├── run.py                         # Single-command server execution entry point
 ├── requirements.txt               # Pinned project dependencies
+├── LICENSE                        # MIT License
 └── README.md                      # Comprehensive project documentation
 ```
 
@@ -140,13 +137,14 @@ Product-Recommendation/
 
 ### 4.1 Prerequisites
 - Python 3.10, 3.11, 3.12, or 3.13
-- Git (optional)
+- Git
 
 ### 4.2 Installation Steps
 
-1. **Navigate to the Project Directory**:
+1. **Clone the Repository**:
    ```bash
-   cd "D:\Management\upm\SEM8\Paid_Data_Science\An Important_Syllabus\NLP\chapter2-wordembedding_semanticsearch\Notes\Task\Product-Recommendation"
+   git clone https://github.com/teevvr7/Product-Recommendation.git
+   cd Product-Recommendation
    ```
 
 2. **(Optional) Create and Activate a Virtual Environment**:
@@ -265,19 +263,20 @@ uvicorn backend.main:app --host 127.0.0.1 --port 8000
 
 ---
 
-## 7. Compliance with Acme Retail Technical Assessment
+## 7. System Architecture & Feature Highlights
 
-- **Section 4.1 (Text Attribute Support)**: Ingests `name`, `main_category`, and `sub_category`.
-- **Section 4.2 (Representation and Embeddings)**: Deploys Word2Vec as primary, FastText as fallback, and TF-IDF as baseline.
-- **Section 4.3 (Similarity and Ranking)**: Cosine similarity on dense continuous embeddings with top-N ranking.
-- **Section 4.4 (Processing Pipeline)**: Fully self-contained pipeline (cleaning, tokenization, lemmatization, routing, ranking) without external calls.
-- **Section 4.5 & 6.4 (Generalisation & Robustness)**: FastText character n-grams guarantee zero failure on unseen terms and typos.
-- **Section 5 (Input/Output Specification)**: Supports both plain text queries and catalog product IDs, outputting structured JSON with scores.
-- **Section 7 (Video Dry Run Compatibility)**: The built-in "Model Comparator" and "Architecture Inspector" provide visual dry-run interfaces for presentation.
+- **Text Attribute Support**: Combines and processes product text fields including `name`, `main_category`, and `sub_category`.
+- **Hybrid Embedding Model**: Deploys Word2Vec as primary, FastText as fallback, and TF-IDF as baseline.
+- **Fast Similarity & Ranking**: Cosine similarity on dense continuous embeddings with top-N ranking running in under 5ms.
+- **Fully Automated Pipeline**: Self-contained processing pipeline (cleaning, tokenization, lemmatization, routing, ranking) without external API dependencies.
+- **Generalisation & Robustness**: FastText character n-grams guarantee zero failure on unseen terms, brand names, and typos.
+- **Input Modalities**: Supports both plain free-text queries and catalog product IDs, outputting structured JSON with scores.
+- **Interactive Web UI**: Modern e-commerce storefront with live omnibox search, dynamic routing indicator, side-by-side model comparison, and interactive cart.
 
 ---
 
-## 8. Authors & Acknowledgements
-- **Author**: Machine Learning / NLP Candidate
-- **Organization**: Acme Retail — Data Science & Personalisation Group
-- **Assessment Reference**: AR-ML-2026-006
+## 8. License & Authors
+
+- **License**: MIT License ([LICENSE](LICENSE))
+- **Author**: Teevanraj ([@teevvr7](https://github.com/teevvr7))
+- **Repository**: [https://github.com/teevvr7/Product-Recommendation](https://github.com/teevvr7/Product-Recommendation)
